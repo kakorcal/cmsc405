@@ -72,11 +72,11 @@ var sphere;
 // var animating = false;  // This is set to true when an animation is running.
 var shapes = {
 	cube: {animation: true, count: 1, limit: 3, increasing: true},
-	pyramid: {animation: true, count: 0, limit: 100},
-	heart: {animation: true, count: 0, limit: 100},
-	star: {animation: true, count: 0, limit: 100},
+	pyramid: {animation: true, count: 0, limit: 2 * Math.PI},
+	heart: {animation: true, count: 0, limit: 2 * Math.PI},
+	diamond: {animation: true, count: 3, limit: 5, increasing: true},
 	sphere: {animation: true, count: 0, limit: 2},
-	cone: {animation: true, count: 0, limit: null}
+	cone: {animation: true, count: 0, limit: 6, increasing: true}
 };
 
 var COLORS = {
@@ -101,7 +101,7 @@ function createWorld() {
 	// near — Camera frustum near plane.
 	// far — Camera frustum far plane.
 
-	camera = new THREE.PerspectiveCamera(100, canvas.width / canvas.height, 1, 300);
+	camera = new THREE.PerspectiveCamera(80, canvas.width / canvas.height, 1, 300);
 
 	var light = new THREE.DirectionalLight(0xffffff, 1.2);
 	light.position.set(10, 6, 10);
@@ -115,12 +115,20 @@ function createWorld() {
 
 	cube = cube();
 	sphere = sphere();
+	pyramid = pyramid();
+	cone = cone();
+	heart = heart();
+	diamond = diamond();
 
 	// add shapes to model
 	// create axes - x:red, y:green, z:blue
 	model.add(new THREE.AxisHelper(5));
 	model.add(cube);
 	model.add(sphere);
+	model.add(pyramid);
+	model.add(cone);
+	model.add(heart);
+	model.add(diamond);
 		
 	scene.add(model);
 }
@@ -130,14 +138,43 @@ function threeD(shape) {
 	return threeD.add(shape);
 }
 
+// https://threejs.org/docs/index.html#api/geometries/ShapeGeometry
 function heart() {
+	var x = 0, y = 0;
+	var heart = new THREE.Shape();
+	heart.moveTo(x + 5 * 0.1, y + 5 * 0.1);
+	heart.bezierCurveTo(x + 5 * 0.1, y + 5 * 0.1, x + 4 * 0.1, y * 0.1, x * 0.1, y * 0.1);
+	heart.bezierCurveTo(x - 6 * 0.1, y * 0.1, x - 6 * 0.1, y + 7 * 0.1, x - 6 * 0.1, y + 7 * 0.1);
+	heart.bezierCurveTo(x - 6 * 0.1, y + 11 * 0.1, x - 3 * 0.1, y + 15.4 * 0.1, x + 5 * 0.1, y + 19 * 0.1);
+	heart.bezierCurveTo(x + 12 * 0.1, y + 15.4 * 0.1, x + 16 * 0.1, y + 11 * 0.1, x + 16 * 0.1, y + 7 * 0.1);
+	heart.bezierCurveTo(x + 16 * 0.1, y + 7 * 0.1, x + 16 * 0.1, y * 0.1, x + 10 * 0.1, y * 0.1);
+	heart.bezierCurveTo(x + 7 * 0.1, y * 0.1, x + 5 * 0.1, y + 5 * 0.1, x + 5 * 0.1, y + 5 * 0.1);
 
+	var extrudeSettings = { 
+		amount: 0.1, 
+		bevelEnabled: true, 
+		bevelSegments: 1, 
+		steps: 1, 
+		bevelSize: 0.1, 
+		bevelThickness: 0.1
+	};
+
+	var mesh = new THREE.Mesh(
+		new THREE.ExtrudeGeometry(heart, extrudeSettings),
+		new THREE.MeshPhongMaterial({
+		color: COLORS.pink
+	}));
+	
+	mesh.position.x = 3;
+	mesh.position.y = 6;
+	mesh.rotation.z = Math.PI;
+	return mesh;
 }
 
 function cube() {
 	var shape = new THREE.Mesh(
 	  new THREE.BoxGeometry(1, 1, 1),
-		new THREE.MeshPhongMaterial({
+		new THREE.MeshLambertMaterial({
 			color: COLORS.magenta
 		})
 	);
@@ -145,19 +182,49 @@ function cube() {
 	return threeD(shape);
 }
 
+// https://stackoverflow.com/questions/26418591/how-to-make-a-rectangular-pyramid-in-three-js-r68
 function pyramid() {
+	var shape = new THREE.Mesh(
+	  new THREE.CylinderGeometry(0, 1, 1, 4),
+		new THREE.MeshLambertMaterial({
+			color: COLORS.green
+		})
+	);
+
+	shape.position.y = 5;
+	shape.position.z = 5;
+
 	return threeD(shape);
 }
 
-function star() {
-	return threeD(shape);
-}
+function diamond() {
+	var shape = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 4, -10),
+		new THREE.MeshLambertMaterial({
+			color: COLORS.yellow
+		})
+	);
+	
+	shape.position.x = 3;
+	shape.position.y = -4;
+	shape.position.z = 3;
 
-function pyramid() {
 	return threeD(shape);
 }
 
 function cone() {
+	var shape = new THREE.Mesh(
+	  new THREE.CylinderGeometry(0, 0.5, 2, 15),
+		new THREE.MeshLambertMaterial({
+			color: COLORS.orange,
+			wireframe: true
+		})
+	);
+
+	shape.position.x = 5;
+	shape.position.z = -2;
+	shape.rotation.z = 1;
+
 	return threeD(shape);
 }
 
@@ -173,7 +240,7 @@ function sphere() {
 	var light = new THREE.PointLight(COLORS.cyan, 1, 50);
 	
 	light.add(shape);
-	light.position.z = shapes.sphere.count;
+	light.position.z = 5;
 
 	return light;
 }
@@ -191,8 +258,8 @@ function render() {
  */
 function updateForFrame() {
 	if(shapes.sphere.animation) {
-	  sphere.position.z = Math.cos(shapes.sphere.count * Math.PI) * 8;
-	  sphere.position.x = Math.sin(shapes.sphere.count * Math.PI) * 8;
+	  sphere.position.z = Math.cos(shapes.sphere.count * Math.PI) * 5;
+	  sphere.position.x = Math.sin(shapes.sphere.count * Math.PI) * 5;
 	 	shapes.sphere.count += 0.01; 
 	 	if(shapes.sphere.count === shapes.sphere.limit) {
 	 		shapes.sphere.count = 0; 
@@ -214,6 +281,60 @@ function updateForFrame() {
 			shapes.cube.count += 0.01;
 		}else {
 			shapes.cube.count -= 0.01;
+		}
+	}
+
+	if(shapes.pyramid.animation) {
+		pyramid.rotation.z = shapes.pyramid.count;
+		shapes.pyramid.count -= 0.01;
+
+		if(shapes.pyramid.count <= -shapes.pyramid.limit) {
+			shapes.pyramid.count = 0;
+		}
+	}
+
+	if(shapes.cone.animation) {
+		cone.position.y = shapes.cone.count;
+
+		if(shapes.cone.count <= 0) {
+			shapes.cone.increasing = true;
+		}
+
+		if(shapes.cone.count >= shapes.cone.limit) {
+			shapes.cone.increasing = false;
+		}
+
+		if(shapes.cone.increasing) {
+			shapes.cone.count += 0.03;
+		}else {
+			shapes.cone.count -= 0.03;
+		}
+	}
+
+	if(shapes.heart.animation) {
+		heart.rotation.y += 0.01;
+
+		if(shapes.heart.count >= shapes.heart.limit) {
+			shapes.heart.count = 0; 
+		}
+	}
+
+	if(shapes.diamond.animation) {
+		diamond.position.x = shapes.diamond.count;
+		diamond.position.z = -shapes.diamond.count;
+
+		if(shapes.diamond.count <= 0) {
+			shapes.diamond.increasing = true;
+		}
+
+		if(shapes.diamond.count >= shapes.diamond.limit) {
+			shapes.diamond.increasing = false;
+		}
+
+		if(shapes.diamond.increasing) {
+			shapes.diamond.count += 0.03;
+		}else {
+			shapes.diamond.count -= 0.03;
 		}
 	}
 }
@@ -316,9 +437,9 @@ function init() {
 			<td><input type="radio" name="heart" value="off" /></td>
 		</tr>
 		<tr>
-			<td>Star</td>
-			<td><input type="radio" name="star" value="on" checked="checked" /></td>
-			<td><input type="radio" name="star" value="off" /></td>
+			<td>Diamond</td>
+			<td><input type="radio" name="diamond" value="on" checked="checked" /></td>
+			<td><input type="radio" name="diamond" value="off" /></td>
 		</tr>
 		<tr>
 			<td>Sphere</td>
