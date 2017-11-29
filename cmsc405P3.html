@@ -36,6 +36,10 @@
 <script src="./lib/TrackballControls.js"></script>
 <script>
 
+/*
+	Using modeling-starting.html as a template to set up the 3D scene
+ */
+
 /* This is a starter file for experimenting with 3D animated models
  * in three.js.  The user can rotate the model using the keyboard, and
  * can turn animation on and off.  As an example, it shows  a sphere
@@ -251,11 +255,6 @@ function render() {
   renderer.render(scene, camera);
 }
 
-
-/*  When an animation is in progress, this function is called just before rendering each
- *  frame of the animation, to make any changes necessary in the scene graph to prepare
- *  for that frame.
- */
 function updateForFrame() {
 	if(shapes.sphere.animation) {
 	  sphere.position.z = Math.cos(shapes.sphere.count * Math.PI) * 5;
@@ -341,11 +340,6 @@ function updateForFrame() {
 
 //--------------------------- animation support -----------------------------------
 
-/* This function runs the animation by calling updateForFrame() then calling render().
- * Finally, it arranges for itself to be called again to do the next frame.  When the
- * value of animating is set to false, this function does not schedule the next frame,
- * so the animation stops.
- */
 function doFrame() {
 	updateForFrame();
 	controls.update();
@@ -364,10 +358,6 @@ function handleAnimationSwitch() {
 
 //----------------------- respond to window resizing -------------------------------
 
-/* When the window is resized, we need to adjust the aspect ratio of the camera.
- * We also need to reset the size of the canvas that used by the renderer to
- * match the new size of the window.
- */
  function doResize() {
    camera.aspect = window.innerWidth / window.innerHeight;
    camera.updateProjectionMatrix(); // Need to call this for the change in aspect to take effect.
@@ -375,11 +365,8 @@ function handleAnimationSwitch() {
  }
 
 
-//----------------------------------------------------------------------------------
+//----------------------------- initialize screen ---------------------------------
 
-/**
- *  This init() function is called when by the onload event when the document has loaded.
- */
 function init() {
 	try {
 		renderer = new THREE.WebGLRenderer( {
@@ -393,7 +380,7 @@ function init() {
 
 	canvas = renderer.domElement;
 	renderer.setSize(window.innerWidth, window.innerHeight);
-	window.addEventListener("resize", doResize, false); //Set up handler for resize event
+	window.addEventListener("resize", doResize, false);
 	document.body.appendChild(canvas);
 
 	var buttons = document.querySelectorAll('input[type=radio]');
