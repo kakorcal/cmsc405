@@ -9,113 +9,165 @@
    
    Derived from code available from Diskworld-2.html 
    
-   The Shaders are still complex but have been simplified slightly.
-   
-      
+   The Shaders are still complex but have been simplified slightly.   
 -->
 <head>
-<title>Kicking the Soccer Ball</title>
+<title>Project 4</title>
 <style>
     body {
-        background-color: #EEEEEE;
+      background-color: #EEEEEE;
+      width: 965px;
+      margin: 0px auto;
+      font-family: Helvetica, sans-serif;
+      box-sizing: border-box;
     }
-    label {
-        white-space: pre;
-        margin-left: 25px;
+    h1 {
+      text-align: center;
+    }
+    #container {
+      margin: 10px 0;
+    }
+    #controls {
+      display: inline-block;
+    }
+    table {
+      border-collapse: collapse;
+      width: 280px;
+      height: 480px;
+    }
+    table, th, td {
+      border: 1px solid #000;
+    }
+    table th:first-of-type,
+    table td:first-of-type {
+      width: 33%;
+    }
+    table td {
+      padding: 0 5px;
+    }
+    /* https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_rangeslider_round */
+    .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 15px;
+      border-radius: 5px;   
+      background: #d3d3d3;
+      outline: none;
+      opacity: 0.7;
+      -webkit-transition: .2s;
+      transition: opacity .2s;
+    }
+    .slider:hover {
+      opacity: 1;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%; 
+      background: #4CAF50;
+      cursor: pointer;
+    }
+    .slider::-moz-range-thumb {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #4CAF50;
+      cursor: pointer;
     }
 </style>
 
 <!-- This shader is exactly as provided -->
 
 <script type="x-shader/x-vertex" id="vshader-source">
-    attribute vec3 a_coords;
-    attribute vec3 a_normal;   
-    uniform mat4 modelview;
-    uniform mat4 projection;   
-    varying vec3 v_normal;
-    varying vec3 v_eyeCoords;  
-    void main() {
-        vec4 coords = vec4(a_coords,1.0);
-        vec4 eyeCoords = modelview * coords;
-        gl_Position = projection * eyeCoords;
-        v_normal = normalize(a_normal);
-        v_eyeCoords = eyeCoords.xyz/eyeCoords.w;         
-    }
+  attribute vec3 a_coords;
+  attribute vec3 a_normal;   
+  uniform mat4 modelview;
+  uniform mat4 projection;   
+  varying vec3 v_normal;
+  varying vec3 v_eyeCoords;  
+  void main() {
+      vec4 coords = vec4(a_coords,1.0);
+      vec4 eyeCoords = modelview * coords;
+      gl_Position = projection * eyeCoords;
+      v_normal = normalize(a_normal);
+      v_eyeCoords = eyeCoords.xyz/eyeCoords.w;         
+  }
 </script>
 
 <!-- This shader has simplified lighting model and equation
 Notice the light only has 3 properties now -->
 <script type="x-shader/x-fragment" id="fshader-source">
-    #ifdef GL_FRAGMENT_PRECISION_HIGH
-       precision highp float;
-    #else
-       precision mediump float;
-    #endif
-    struct MaterialProperties {
-        vec4 diffuseColor;      
-        vec3 specularColor;
-        vec3 emissiveColor;
-        float specularExponent;
-    };
-    struct LightProperties {
-        bool enabled;
-        vec4 position;
-        vec3 color;       
-    };
-    uniform MaterialProperties material; // do two-sided lighting, but assume front and back materials are the same
-    uniform LightProperties lights[4];
-    uniform mat3 normalMatrix;    
-    varying vec3 v_normal;
-    varying vec3 v_eyeCoords;
-    
-    vec3 lightingEquation( LightProperties light, MaterialProperties material, 
-                                vec3 eyeCoords, vec3 N, vec3 V ) {
-           // N is normal vector, V is direction to viewer.
-        vec3 L, R; // Light direction and reflected light direction.      
-        if ( light.position.w == 0.0 ) {
-            L = normalize( light.position.xyz );
-        }
-        else {
-            L = normalize( light.position.xyz/light.position.w - v_eyeCoords );            
-        }
-        if (dot(L,N) <= 0.0) {
-            return vec3(0.0);
-        }
-        vec3 reflection = dot(L,N) * light.color * material.diffuseColor.rgb;
-        R = -reflect(L,N);
-        if (dot(R,V) > 0.0) {
-            float factor = pow(dot(R,V),material.specularExponent);
-            reflection += factor * material.specularColor * light.color;
-        }
-         return reflection;   
-        
-    }
-    void main() {
-        vec3 normal = normalize( normalMatrix*v_normal );
-        vec3 viewDirection = normalize( -v_eyeCoords);  // (Assumes a perspective projection.)
-        vec3 color = material.emissiveColor;
-        
-        for (int i = 0; i < 4; i++) {
-            if (lights[i].enabled) { 
-                if (gl_FrontFacing) {
-                    color += lightingEquation( lights[i], material, v_eyeCoords,
-                                                    normal, viewDirection);
-                }
-                else {
-                    color += lightingEquation( lights[i], material, v_eyeCoords,
-                                                    -normal, viewDirection);
-                }
-            }
-        }               
-       
-        gl_FragColor = vec4(color,material.diffuseColor.a);        
-    }
+  #ifdef GL_FRAGMENT_PRECISION_HIGH
+     precision highp float;
+  #else
+     precision mediump float;
+  #endif
+  struct MaterialProperties {
+      vec4 diffuseColor;      
+      vec3 specularColor;
+      vec3 emissiveColor;
+      float specularExponent;
+  };
+  struct LightProperties {
+      bool enabled;
+      vec4 position;
+      vec3 color;       
+  };
+  uniform MaterialProperties material; // do two-sided lighting, but assume front and back materials are the same
+  uniform LightProperties lights[4];
+  uniform mat3 normalMatrix;    
+  varying vec3 v_normal;
+  varying vec3 v_eyeCoords;
+  
+  vec3 lightingEquation( LightProperties light, MaterialProperties material, 
+                              vec3 eyeCoords, vec3 N, vec3 V ) {
+         // N is normal vector, V is direction to viewer.
+      vec3 L, R; // Light direction and reflected light direction.      
+      if ( light.position.w == 0.0 ) {
+          L = normalize( light.position.xyz );
+      }
+      else {
+          L = normalize( light.position.xyz/light.position.w - v_eyeCoords );            
+      }
+      if (dot(L,N) <= 0.0) {
+          return vec3(0.0);
+      }
+      vec3 reflection = dot(L,N) * light.color * material.diffuseColor.rgb;
+      R = -reflect(L,N);
+      if (dot(R,V) > 0.0) {
+          float factor = pow(dot(R,V),material.specularExponent);
+          reflection += factor * material.specularColor * light.color;
+      }
+       return reflection;   
+      
+  }
+  void main() {
+      vec3 normal = normalize( normalMatrix*v_normal );
+      vec3 viewDirection = normalize( -v_eyeCoords);  // (Assumes a perspective projection.)
+      vec3 color = material.emissiveColor;
+      
+      for (int i = 0; i < 4; i++) {
+          if (lights[i].enabled) { 
+              if (gl_FrontFacing) {
+                  color += lightingEquation( lights[i], material, v_eyeCoords,
+                                                  normal, viewDirection);
+              }
+              else {
+                  color += lightingEquation( lights[i], material, v_eyeCoords,
+                                                  -normal, viewDirection);
+              }
+          }
+      }               
+     
+      gl_FragColor = vec4(color,material.diffuseColor.a);        
+  }
 </script>
 
-
-<script src="gl-matrix-min.js"></script>
-<script src="trackball-rotator.js"></script>
-<script src="basic-object-models-IFS.js"></script>
+<script src="./lib/gl-matrix-min.js"></script>
+<script src="./lib/trackball-rotator.js"></script>
+<script src="./lib/basic-object-models-IFS.js"></script>
 <script>
 
 "use strict";
@@ -148,7 +200,7 @@ var rotator;  // A TrackballRotator to implement rotation by mouse.
 
 var frameNumber = 0;  // frame number during animation (actually only goes up by 0.5 per frame)
 
-var torus, sphere, cone, cylinder, disk, ring, cube;  // basic objects, created using function createModel
+var torus, sphere, cone, cylinder, triangle, diamond, cube, tetrahedron, ellipsoid, hemisphere;  // basic objects, created using function createModel
 
 var matrixStack = [];           // A stack of matrices for implementing hierarchical graphics.
 
@@ -506,79 +558,143 @@ function setAnimating(run) {
  * initialization function that will be called when the page has loaded
  */
 function init() {
-    try {
-        var canvas = document.getElementById("webglcanvas");
-        gl = canvas.getContext("webgl") || 
-                         canvas.getContext("experimental-webgl");
-        if ( ! gl ) {
-            throw "Browser does not support WebGL";
-        }
+  try {
+    var canvas = document.getElementById("webglcanvas");
+    gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (!gl) {
+      throw "Browser does not support WebGL";
     }
-    catch (e) {
-        document.getElementById("message").innerHTML =
-            "<p>Sorry, could not get a WebGL graphics context.</p>";
-        return;
+  }catch (e) {
+    document.getElementById("container").style.display = "none";
+    document.getElementById("message").innerHTML =
+        "<p>Sorry, could not get a WebGL graphics context.</p>";
+    return;
+  }
+
+  try {
+    initGL();  // initialize the WebGL graphics context
+  }catch (e) {
+    document.getElementById("container").style.display = "none";
+    document.getElementById("message").innerHTML =
+        "<p>Sorry, could not initialize the WebGL graphics context:" + e + "</p>";
+    return;
+  }
+
+  // document.getElementById("animCheck").checked = false;
+  // document.getElementById("reset").onclick = function() {
+  //    rotator.setView(17,[0,1,2]);
+  //    frameNumber = 0;
+  //    // Initialize soccer ball positions      
+  //    xval = -0.7; 
+  //    yval = -2.1;      
+  //    animating = false;
+  //    document.getElementById("animCheck").checked = false;
+  //    draw();
+  // }
+
+  var sliders = document.querySelectorAll("input[type=range]");
+
+  for(var i = 0; i < sliders.length; i++) {
+    sliders[i].oninput = function() {
+      console.log("Id: " + this.id + ", Value: " + this.value);
     }
-    try {
-        initGL();  // initialize the WebGL graphics context
-    }
-    catch (e) {
-        document.getElementById("message").innerHTML =
-            "<p>Sorry, could not initialize the WebGL graphics context:" + e + "</p>";
-        return;
-    }
-    document.getElementById("animCheck").checked = false;
-    document.getElementById("reset").onclick = function() {
-       rotator.setView(17,[0,1,2]);
-       frameNumber = 0;
-       // Initialize soccer ball positions      
-       xval = -0.7; 
-       yval = -2.1;      
-       animating = false;
-       document.getElementById("animCheck").checked = false;
+  }
+  
+  // Not really using all of these
+  // As you create your scene use these or create from primitives
+  torus = createModel(uvTorus(0.5,1,16,8));   // Create all the basic objects.
+  sphere = createModel(uvSphere(1));
+  cone = createModel(uvCone(),[0,0,.5]);
+  cylinder = createModel(uvCylinder(),[0,0,1.5]);
+  cube = createModel(cube());
+
+  // This controls the zoom and initial placement
+  rotator = new TrackballRotator(canvas,function() {
+    if (!animating)
        draw();
-    }
-    
-    // Not really using all of these
-    // As you create your scene use these or create from primitives
-    torus = createModel(uvTorus(0.5,1,16,8));   // Create all the basic objects.
-    sphere = createModel(uvSphere(1));
-    cone = createModel(uvCone(),[0,0,.5]);
-    cylinder = createModel(uvCylinder(),[0,0,1.5]);
-    disk = createModel(uvCylinder(5.5,0.5,64),[0,0,.25]);
-    ring = createModel(ring(3.3,4.8,40));
-    cube = createModel(cube());
- 
- // This controls the zoom and initial placement
-    rotator = new TrackballRotator(canvas,function() {
-        if (!animating)
-           draw();
-    },17,[0,1,2]); 
-    draw();
+  },17,[0,1,2]); 
+  draw();
 }
 
 </script>
 </head>
 <body onload="init()">
 
-<h2>Kicking the soccer Ball</h2>
-
-
 <noscript><hr><h3>This page requires Javascript and a web browser that supports WebGL</h3><hr></noscript>
 
-<p id="message" style="font-weight:bold">Drag your mouse on the model to rotate it.<br>
-Make sure to try the animation, and let it run long enough to see the nighttime view!</p>
-
-<p>
-   <label><input type="checkbox" id="animCheck" onchange="setAnimating(this.checked)">Kick Ball</label>
-   <button id="reset" style="margin-left:40px">Reset</button>
-</p>
-
-
-<div>
-
-    <canvas width=600 height=600 id="webglcanvas" style="background-color:blue"></canvas>
-
+<div id="container">
+  <canvas width=680 height=480 id="webglcanvas"></canvas>
+  <div id="controls">
+    <table>
+      <tr>
+        <th>Shape</th>
+        <th>Animation</th>
+      </tr>
+      <tr>
+        <td>Cube</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="cube" />
+        </td>
+      </tr>
+      <tr>
+        <td>Sphere</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="sphere" />
+        </td>
+      </tr>
+      <tr>
+        <td>Torus</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="torus" />
+        </td>
+      </tr>
+      <tr>
+        <td>Cylinder</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="cylinder" />
+        </td>
+      </tr>
+      <tr>
+        <td>Cone</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="cone" />
+        </td>
+      </tr>
+      <tr>
+        <td>Triangle</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="triangle" />
+        </td>
+      </tr>
+      <tr>
+        <td>Tetrahedron</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="tetrahedron" />
+        </td>
+      </tr>
+      <tr>
+        <td>Diamond</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="diamond" />
+        </td>
+      </tr>
+      <tr>
+        <td>Ellipsoid</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="ellipsoid" />
+        </td>
+      </tr>
+      <tr>
+        <td>Hemisphere</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="hemisphere" />
+        </td>
+      </tr>
+    </table>
+  </div>
 </div>
+
+<h1>WebGL 3D Project</h1>
+<div id="message"></div>
 </body>
 </html>
