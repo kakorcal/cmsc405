@@ -1,0 +1,6 @@
+https://www.tutorialspoint.com/webgl/webgl_quick_guide.htm
+https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_rangeslider_round
+http://learningwebgl.com/blog/?p=28
+https://webglfundamentals.org/webgl/lessons/webgl-fundamentals.html
+https://www.codeproject.com/Articles/594222/LineplusinplusWebGLplusandpluswhyplusyouplusgonnap
+https://webglfundamentals.org/webgl/lessons/webgl-3d-perspective.html
