@@ -191,8 +191,9 @@ var rotator;  // A TrackballRotator to implement rotation by mouse.
 
 var frameNumber = 0;  // frame number during animation (actually only goes up by 0.5 per frame)
 
+// objects rendered by createModel
 var xAxis, yAxis, zAxis;
-var torus, sphere, cone, cylinder, triangle, diamond, cube, teapot, pyramid, hemisphere;  // basic objects, created using function createModel
+var torus, sphere, cone, cylinder, triangle, diamond, cube, teapot, pyramid, ring;
 
 var matrixStack = [];           // A stack of matrices for implementing hierarchical graphics.
 
@@ -222,6 +223,7 @@ function draw() {
   modelview = rotator.getViewMatrix();
   
   lights();
+  axes();
   scene();
 }
 
@@ -261,102 +263,102 @@ function lights() {
    
 }
 
+function axes() {
+  // axes - adding emissiveColor so that it is not affected by other light sources
+  pushMatrix();
+  currentColor = [1,0,0,1];
+  gl.uniform3fv(u_material.emissiveColor, [1,0,0]);
+  xAxis.render(gl.LINES);
+  popMatrix();
+
+  pushMatrix();
+  currentColor = [0,1,0,1];
+  gl.uniform3fv(u_material.emissiveColor, [0,1,0]);
+  yAxis.render(gl.LINES);
+  popMatrix();
+
+  pushMatrix();
+  currentColor = [0,0,1,1];
+  gl.uniform3fv(u_material.emissiveColor, [0,0,1]);
+  zAxis.render(gl.LINES);
+  popMatrix();
+  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+}
+
 /**
  * Note for every push their should be a pop. This resets the transformations
  */
 // https://www.tutorialspoint.com/webgl/webgl_quick_guide.htm
 function scene() {
-  // axes - adding emissiveColor so that it is not affected by other light sources
-  gl.lineWidth(40.0);
-  pushMatrix();
-  currentColor = [1,0,0,1];
-  gl.uniform3f(u_material.emissiveColor, 1, 0, 0);
-  xAxis.render(gl.LINES);
-  gl.uniform3f( u_material.emissiveColor, 0, 0, 0);
-  popMatrix();
-
-  pushMatrix();
-  currentColor = [0,1,0,1];
-  gl.uniform3f(u_material.emissiveColor, 0, 1, 0);
-  yAxis.render(gl.LINES);
-  gl.uniform3f( u_material.emissiveColor, 0, 0, 0);
-  popMatrix();
-
-  pushMatrix();
-  currentColor = [0,0,1,1];
-  gl.uniform3f(u_material.emissiveColor, 0, 0, 1);
-  zAxis.render(gl.LINES);
-  gl.uniform3f(u_material.emissiveColor, 0, 0, 0);
-  popMatrix();
-  gl.lineWidth(1.0);
-
   // cube
   pushMatrix();
-  mat4.translate(modelview, modelview, [-1,3,0]);
-  mat4.rotate(modelview,modelview,(90)/180*Math.PI,[1,0,0]);
+  mat4.translate(modelview, modelview, [-5,2,0]);
   currentColor = [0.9,0.4,0.1,1];
   cube.render();
   popMatrix();
 
   // cylinder
   pushMatrix();
-  mat4.translate(modelview,modelview,[-1,2.9,0]);
-  mat4.rotate(modelview,modelview,(90)/180*Math.PI,[1,0,0]);
-  mat4.scale(modelview,modelview,[0.5,0.7,0.5]);
+  mat4.translate(modelview, modelview, [-2,0,3]);
+  mat4.rotate(modelview, modelview, Math.PI*0.5, [0,1,0]);
   currentColor = [0.9,0.4,0.1,1];
   cylinder.render();
   popMatrix();
 
   // torus 
+  pushMatrix();
+  mat4.translate(modelview, modelview, [-2,0,0]);
+  currentColor = [0.9,0.4,0.1,1];
+  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  torus.render();
+  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  popMatrix();
+
   // sphere
+  pushMatrix();
+  mat4.translate(modelview, modelview, [1,2,-1]);
+  currentColor = [0.9,0.4,0.1,1];
+  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  sphere.render();
+  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  popMatrix();
+
+  // ring
+  pushMatrix();
+  mat4.translate(modelview, modelview, [1,2,-1]);
+  mat4.rotate(modelview, modelview, Math.PI*0.5, [1,0,0]);
+  ring.render();
+  popMatrix();
+
   // cone 
+  pushMatrix();
+  mat4.translate(modelview, modelview, [0,-2,1]);
+  mat4.rotate(modelview, modelview, -Math.PI*0.5, [1,0,0]);
+  currentColor = [0.9,0.4,0.1,1];
+  cone.render();
+  popMatrix();
+
   // teapot
-  // pyramid
-  // hemisphere
-  // diamond
+  pushMatrix();
+  mat4.translate(modelview, modelview, [2.8,-2,0]);
+  currentColor = [0.9,0.4,0.1,1];
+  teapot.render();
+  popMatrix();
+
   // triangle
-
-  // // Body
-  // pushMatrix();
-  // mat4.translate(modelview,modelview,[-1,1.0,0]);
-  // mat4.rotate(modelview,modelview,(90)/180*Math.PI,[1,0,0]);
-  // mat4.scale(modelview,modelview,[1.5,1.5,1.5]);
-  // currentColor = [0.9,0.0,0.1,1];
-  // cube.render();
-  // popMatrix();  
- 
   
-  // pushMatrix();
-  // mat4.translate(modelview,modelview,[-4.3,1.0,0]);
-  // mat4.rotate(modelview,modelview,(90)/180*Math.PI,[0,1,0]);
-  // mat4.scale(modelview,modelview,[1.0,.6,1.4]);
-  // currentColor = [0.9,1.0,0.1,1];
-  // cylinder.render();
-  // popMatrix();  
-  // // Legs
-  // pushMatrix();
-  // mat4.translate(modelview,modelview,[-1.3,3.1,0]);
-  // mat4.rotate(modelview,modelview,(90)/180*Math.PI,[1,0,0]);
-  // mat4.scale(modelview,modelview,[0.6,0.6,3.0]);
-  // currentColor = [0.0,1.0,0.1,1];
-  // cylinder.render();
-  // popMatrix();  
-  
-  // pushMatrix();
-  // mat4.translate(modelview,modelview,[-0.5,3.1,0]);
-  // // Kval provides for rotating about x-axis providing a foot kicking simulation
-  // mat4.rotate(modelview,modelview,(kval)/180*Math.PI,[1,0,0]);
-  // mat4.scale(modelview,modelview,[0.6,0.6,3.0]);
-  // currentColor = [0.0,1.0,0.1,1];
-  // cylinder.render();
-  // popMatrix(); 
+  // diamond
 
-  // // teapot
-  // pushMatrix(); 
-  // mat4.translate(modelview,modelview,[-0.5,3.1,0]);
-  // currentColor = [0.9,1.0,0.1,1];
-  // teapot.render();
-  // popMatrix();      
+
+
+
+  // pyramid
+  // pushMatrix();
+  // mat4.translate(modelview, modelview, [2.8,-2,0]);
+  // currentColor = [0.9,0.4,0.1,1];
+  // pyramid.render();
+  // popMatrix();
+    
 }
 
 //----------------------- Shapes --------------------------------
@@ -617,18 +619,6 @@ function init() {
     return;
   }
 
-  // document.getElementById("animCheck").checked = false;
-  // document.getElementById("reset").onclick = function() {
-  //    rotator.setView(17,[0,1,2]);
-  //    frameNumber = 0;
-  //    // Initialize soccer ball positions      
-  //    xval = -0.7; 
-  //    yval = -2.1;      
-  //    animating = false;
-  //    document.getElementById("animCheck").checked = false;
-  //    draw();
-  // }
-
   var sliders = document.querySelectorAll("input[type=range]");
 
   for(var i = 0; i < sliders.length; i++) {
@@ -640,18 +630,22 @@ function init() {
   xAxis = createModel(line([-1,0,0, 2,0,0], [0,0,-1, 0,0,2], [0,1]));
   yAxis = createModel(line([0,-1,0, 0,2,0], [-1,0,0, 2,0,0], [0,1]));
   zAxis = createModel(line([0,0,-1, 0,0,2], [0,-1,0, 0,2,0], [0,1]));
-  torus = createModel(uvTorus(0.5,1,16,8));   // Create all the basic objects.
-  sphere = createModel(uvSphere(1));
-  cone = createModel(uvCone(),[0,0,.5]);
-  cylinder = createModel(uvCylinder(),[0,0,1.5]);
-  cube = createModel(cube());
+  torus = createModel(uvTorus(0.2,0.6,16,8));
+  sphere = createModel(uvSphere(0.4));
+  ring = createModel(ring(0.4, 0.9, 30));
+  cone = createModel(uvCone(), [0,0,.5]);
+  cylinder = createModel(uvCylinder(), [0,0,1.5]);
+  cube = createModel(cube(0.8));
   for (var i = 0; i < teapotModel.vertexPositions.length; i++) {
-    teapotModel.vertexPositions[i] *= 0.1; 
+    teapotModel.vertexPositions[i] *= 0.06; 
   }
   teapot = createModel(teapotModel);
+  //pyramid = createModel(uvPyramid());
+  //triangle = createModel(triangle());
+  //diamond = createModel(uvDiamond());
 
   // This controls the zoom and initial placement
-  rotator = new TrackballRotator(canvas, draw, 17, [0,1,2]); 
+  rotator = new TrackballRotator(canvas, draw, 15, [1,0.5,1]); 
   draw();
 }
 
@@ -726,9 +720,9 @@ function init() {
         </td>
       </tr>
       <tr>
-        <td>Hemisphere</td>
+        <td>Ring</td>
         <td>
-          <input type="range" min="0" max="100" value="50" class="slider" id="hemisphere" />
+          <input type="range" min="0" max="100" value="50" class="slider" id="ring" />
         </td>
       </tr>
     </table>
