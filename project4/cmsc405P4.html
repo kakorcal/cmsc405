@@ -98,6 +98,7 @@
 <script src="./lib/teapot-model-IFS.js"></script>
 <script src="./extended-object-models.js"></script>
 <script src="./animation.js"></script>
+
 <script>
 
 "use strict";
@@ -302,15 +303,12 @@ function scene() {
   popMatrix();    
 }
 
-//----------------------- Shapes --------------------------------
-
 /**
  *  Push a copy of the current modelview matrix onto the matrix stack.
  */
 function pushMatrix() {
   matrixStack.push(mat4.clone(modelview));
 }
-
 
 /**
  *  Restore the modelview matrix to a value popped from the matrix stack.
@@ -527,8 +525,6 @@ function init() {
   }
 
   var sliders = document.querySelectorAll("input[type=range]");
-  var resetView = document.getElementById('resetView');
-  var resetAnimation = document.getElementById('resetAnimation');
 
   for(var i = 0; i < sliders.length; i++) {
     sliders[i].oninput = function() {
@@ -550,13 +546,7 @@ function init() {
     }
   }
 
-  resetView.onclick = function() {
-    rotator.setView(18, [1,0.5,1]);
-    frameNumber = 0;
-    console.log("resetting view");
-  };
-
-  resetAnimation.onclick = function() {
+  document.getElementById('resetAnimation').onclick = function() {
     for(var i = 0; i < sliders.length; i++) {
       sliders[i].value = 50;
       var id = sliders[i].id;
@@ -578,7 +568,13 @@ function init() {
     console.log("resetting animation speed");
   };
 
-  // see extended-object-models.js 
+  document.getElementById('resetView').onclick = function() {
+    rotator.setView(18, [1,0.5,1]);
+    frameNumber = 0;
+    console.log("resetting view");
+  };
+
+  // x,y,z, triangle, pyramid, and cross were created by extended-object-models.js 
   xAxis = createModel(line([-1,0,0, 2,0,0], [0,0,-1, 0,0,2], [0,1]));
   yAxis = createModel(line([0,-1,0, 0,2,0], [-1,0,0, 2,0,0], [0,1]));
   zAxis = createModel(line([0,0,-1, 0,0,2], [0,-1,0, 0,2,0], [0,1]));
@@ -588,9 +584,11 @@ function init() {
   cone = createModel(uvCone(), [0,0,.5]);
   cylinder = createModel(uvCylinder(), [0,0,1.5]);
   cube = createModel(cube(0.8));
+
   for (var i = 0; i < teapotModel.vertexPositions.length; i++) {
     teapotModel.vertexPositions[i] *= 0.06; 
   }
+
   teapot = createModel(teapotModel);
   triangle = createModel(triangle(0.5));
   pyramid = createModel(pyramid(0.3));
