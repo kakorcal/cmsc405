@@ -96,6 +96,7 @@
 <script src="./lib/trackball-rotator.js"></script>
 <script src="./lib/basic-object-models-IFS.js"></script>
 <script src="./lib/teapot-model-IFS.js"></script>
+<script src="./colors.js"></script>
 <script src="./extended-object-models.js"></script>
 <script src="./animation.js"></script>
 
@@ -135,7 +136,10 @@ var torus, sphere, cone, cylinder, triangle, cross, cube, teapot, pyramid, ring;
 
 var matrixStack = [];           // A stack of matrices for implementing hierarchical graphics.
 
-var currentColor = [1,1,1,1];   // The current diffuseColor; render() functions in the basic objects set
+
+// colors
+var colors = colors();
+var currentColor = colors.whiteA;   // The current diffuseColor; render() functions in the basic objects set
                                 // the diffuse color to currentColor when it is called before drawing the object.
                                 // Other color properties, which don't change often are handled elsewhere.
 
@@ -169,42 +173,42 @@ function lights() {
      
     // Three of four lights used, all enabled
     // Use lights to enhance models looks
-    gl.uniform1i( u_lights[0].enabled, 1 );   
+    gl.uniform1i(u_lights[0].enabled, 1);   
     // Looking down z
-    gl.uniform4f( u_lights[0].position, 0,0,1,0 ); 
-    gl.uniform3f( u_lights[0].color, 1.0,1.0,1.0 );  
+    gl.uniform4f(u_lights[0].position, 0,0,1,0); 
+    gl.uniform3fv(u_lights[0].color, colors.white);  
     
-    gl.uniform1i( u_lights[1].enabled, 1 );  
+    gl.uniform1i(u_lights[1].enabled, 1);  
     // Looking down X
-    gl.uniform4f( u_lights[1].position, 1,0,0,0 ); 
-    gl.uniform3f( u_lights[1].color, 0.0,1.0,0.0 );  
+    gl.uniform4f(u_lights[1].position, 1,0,0,0); 
+    gl.uniform3fv(u_lights[1].color, colors.green);  
     
-     gl.uniform1i( u_lights[2].enabled, 1 );  
+    gl.uniform1i(u_lights[2].enabled, 1);  
     // Looking down Y
-    gl.uniform4f( u_lights[2].position, 0,1,0,0 ); 
-    gl.uniform3f( u_lights[2].color, 1.0,0.0,1.0 );   
+    gl.uniform4f(u_lights[2].position, 0,1,0,0); 
+    gl.uniform3fv(u_lights[2].color, colors.magenta);   
 }
 
 function axes() {
   // axes - adding emissiveColor so that it is not affected by other light sources
   pushMatrix();
-  currentColor = [1,0,0,1];
-  gl.uniform3fv(u_material.emissiveColor, [1,0,0]);
+  // currentColor = [1,0,0,1];
+  gl.uniform3fv(u_material.emissiveColor, colors.red);
   xAxis.render(gl.LINES);
   popMatrix();
 
   pushMatrix();
-  currentColor = [0,1,0,1];
-  gl.uniform3fv(u_material.emissiveColor, [0,1,0]);
+  //currentColor = [0,1,0,1];
+  gl.uniform3fv(u_material.emissiveColor, colors.green);
   yAxis.render(gl.LINES);
   popMatrix();
 
   pushMatrix();
-  currentColor = [0,1,1,1];
-  gl.uniform3fv(u_material.emissiveColor, [0,1,1]);
+  // currentColor = [0,1,1,1];
+  gl.uniform3fv(u_material.emissiveColor, colors.skyBlue);
   zAxis.render(gl.LINES);
   popMatrix();
-  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  gl.uniform3fv(u_material.emissiveColor, colors.black);
 }
 
 /**
@@ -215,7 +219,7 @@ function scene() {
   // cube
   pushMatrix();
   mat4.translate(modelview, modelview, [-4, animate.cube.y, 0]);
-  currentColor = [0.9,0.4,0.1,1];
+  currentColor = colors.greenA;
   cube.render();
   popMatrix();
 
@@ -223,7 +227,7 @@ function scene() {
   pushMatrix();
   mat4.translate(modelview, modelview, [animate.cylinder.trans.x, -2, 3]);
   mat4.scale(modelview, modelview, [1, animate.cylinder.scale.y, 1]);
-  currentColor = [0.9,0.4,0.1,1];
+  currentColor = colors.magentaA;
   cylinder.render();
   popMatrix();
 
@@ -231,20 +235,20 @@ function scene() {
   pushMatrix();
   mat4.translate(modelview, modelview, [-2,0,0]);
   mat4.rotate(modelview, modelview, animate.torus.rad, [1,0,0]);
-  currentColor = [0.9,0.4,0.1,1];
-  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  currentColor = colors.brownA;
+  gl.uniform3fv(u_material.emissiveColor, colors.brown);
   torus.render();
-  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  gl.uniform3fv(u_material.emissiveColor, colors.black);
   popMatrix();
 
   // sphere
   pushMatrix();
   mat4.rotate(modelview, modelview, animate.sphere.rad, [0,0,1]);
   mat4.translate(modelview, modelview, [1,2,-1]);
-  currentColor = [0.9,0.4,0.1,1];
-  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  currentColor = colors.yellowA;
+  // gl.uniform3fv(u_material.emissiveColor, colors.orange);
   sphere.render();
-  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  // gl.uniform3fv(u_material.emissiveColor, colors.black);
   popMatrix();
 
   // ring
@@ -252,6 +256,7 @@ function scene() {
   mat4.rotate(modelview, modelview, animate.sphere.rad, [0,0,1]);
   mat4.translate(modelview, modelview, [1,2,-1]);
   mat4.rotate(modelview, modelview, animate.ring.rad, [0,1,0]);
+  currentColor = colors.orangeA;
   ring.render();
   popMatrix();
 
@@ -259,7 +264,7 @@ function scene() {
   pushMatrix();
   mat4.translate(modelview, modelview, [0, animate.cone.y.val, animate.cone.z.val]);
   mat4.rotate(modelview, modelview, -Math.PI*0.5, [1,0,0]);
-  currentColor = [0.9,0.4,0.1,1];
+  currentColor = colors.pinkA;
   cone.render();
   popMatrix();
 
@@ -267,7 +272,7 @@ function scene() {
   pushMatrix();
   mat4.rotate(modelview, modelview, animate.teapot.rad, [0,1,0]);
   mat4.translate(modelview, modelview, [2.8,-2,0]);
-  currentColor = [0.9,0.4,0.1,1];
+  currentColor = colors.blueA;
   teapot.render();
   popMatrix();
 
@@ -275,20 +280,20 @@ function scene() {
   pushMatrix();
   mat4.translate(modelview, modelview, [-4,2,3]);
   mat4.rotate(modelview, modelview, -animate.triangle.rad, [0,1,1]);
-  currentColor = [0.9,0.4,0.1,1];
-  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  currentColor = colors.redA;
+  // gl.uniform3fv(u_material.emissiveColor, colors.red);
   triangle.render();
-  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  // gl.uniform3fv(u_material.emissiveColor, colors.black);
   popMatrix();
 
   // pyramid
   pushMatrix();
   mat4.translate(modelview, modelview, [3,0,1]);
   mat4.scale(modelview, modelview, [animate.pyramid.x.val, animate.pyramid.y.val, animate.pyramid.z.val]);
-  currentColor = [0.9,0.4,0.1,1];
-  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  currentColor = colors.orangeA;
+  gl.uniform3fv(u_material.emissiveColor, colors.orange);
   pyramid.render();
-  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  gl.uniform3fv(u_material.emissiveColor, colors.black);
   popMatrix();
 
   // cross
@@ -296,10 +301,10 @@ function scene() {
   mat4.translate(modelview, modelview, [3,2,-2]);
   mat4.scale(modelview, modelview, [animate.cross.scale.x.val, animate.cross.scale.y.val, 1]);
   mat4.rotate(modelview, modelview, -animate.cross.rot.rad, [0,0,1]);
-  currentColor = [0.9,0.4,0.1,1];
-  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  currentColor = colors.skyBlueA;
+  // gl.uniform3fv(u_material.emissiveColor, colors.skyBlue);
   cross.render();
-  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  // gl.uniform3fv(u_material.emissiveColor, colors.black);
   popMatrix();    
 }
 
@@ -469,14 +474,14 @@ function initGL() {
     };
   }
           
-  gl.uniform3f(u_material.specularColor, 0.1, 0.1, 0.1 );  // specular properties don't change
-  gl.uniform1f(u_material.specularExponent, 16 );
-  gl.uniform3f(u_material.emissiveColor, 0, 0, 0);  // default, will be changed temporarily for some objects
+  gl.uniform3f(u_material.specularColor, 0.1, 0.1, 0.1);  // specular properties don't change
+  gl.uniform1f(u_material.specularExponent, 16);
+  gl.uniform3fv(u_material.emissiveColor, colors.black);  // default, will be changed temporarily for some objects
   
   for (var i = 1; i < 4; i++) { // set defaults for lights
-    gl.uniform1i(u_lights[i].enabled, 0 ); 
-    gl.uniform4f(u_lights[i].position, 0, 0, 1, 0 );        
-    gl.uniform3f(u_lights[i].color, 1,1,1 ); 
+    gl.uniform1i(u_lights[i].enabled, 0); 
+    gl.uniform4f(u_lights[i].position, 0, 0, 1, 0);        
+    gl.uniform3fv(u_lights[i].color, colors.white); 
   }
     
   // Lights are set on in the draw() method  
@@ -497,7 +502,6 @@ function frame() {
 
 //-------------------------------------------------------------------------
 
-
 /**
  * initialization function that will be called when the page has loaded
  */
@@ -505,22 +509,20 @@ function init() {
   try {
     canvas = document.getElementById("webglcanvas");
     gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    if (!gl) {
+    if(!gl) {
       throw "Browser does not support WebGL";
     }
-  }catch (e) {
+  }catch(e) {
     document.getElementById("container").style.display = "none";
-    document.getElementById("message").innerHTML =
-        "<p>Sorry, could not get a WebGL graphics context.</p>";
+    document.getElementById("message").innerHTML = "<p>Sorry, could not get a WebGL graphics context.</p>";
     return;
   }
 
   try {
     initGL(); // initialize the WebGL graphics context
-  }catch (e) {
+  }catch(e) {
     document.getElementById("container").style.display = "none";
-    document.getElementById("message").innerHTML =
-        "<p>Sorry, could not initialize the WebGL graphics context:" + e + "</p>";
+    document.getElementById("message").innerHTML = "<p>Sorry, could not initialize the WebGL graphics context:" + e + "</p>";
     return;
   }
 
