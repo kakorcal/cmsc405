@@ -167,10 +167,6 @@
 var gl;   // The webgl context.
 var canvas;
 
-var xval=-0.7;
-var yval=-2.1;
-var kval = 90; // Kick leg start
-
 var a_coords_loc;         // Location of the a_coords attribute variable in the shader program.
 var a_normal_loc;         // Location of a_normal attribute 
 var a_texCoords_loc; 
@@ -193,7 +189,7 @@ var frameNumber = 0;  // frame number during animation (actually only goes up by
 
 // objects rendered by createModel
 var xAxis, yAxis, zAxis;
-var torus, sphere, cone, cylinder, triangle, diamond, cube, teapot, pyramid, ring;
+var torus, sphere, cone, cylinder, triangle, hexagon, cube, teapot, pyramid, ring;
 
 var matrixStack = [];           // A stack of matrices for implementing hierarchical graphics.
 
@@ -346,9 +342,22 @@ function scene() {
   popMatrix();
 
   // triangle
-  
-  // diamond
+  pushMatrix();
+  mat4.translate(modelview, modelview, [-2,2,0]);
+  currentColor = [0.9,0.4,0.1,1];
+  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  triangle.render();
+  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  popMatrix();
 
+  // pyramid
+  pushMatrix();
+  mat4.translate(modelview, modelview, [2,0,0]);
+  currentColor = [0.9,0.4,0.1,1];
+  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  pyramid.render();
+  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  popMatrix();
 
 
 
@@ -363,9 +372,91 @@ function scene() {
 
 //----------------------- Shapes --------------------------------
 
+/*
+  line, face, triangle, pyramid, and hexagon function were inspired by the cube function in basic-object-models-IFS.js
+ */
 function line(vertices, normals, indices) {
   return {
     vertexPositions: new Float32Array(vertices),
+    vertexNormals: new Float32Array(normals),
+    vertexTextureCoords: new Float32Array([]),
+    indices: new Uint16Array(indices)
+  };
+}
+
+function face(xyz, nrm, coords, normals) {
+  var clen = xyz.length;
+  var nlen = clen / 3;
+  for(var i = 0; i < clen; i++) {
+    coords.push(xyz[i]);
+  }
+  for(var i = 0; i < nlen; i++) {
+    normals.push(nrm[0], nrm[1], nrm[2]);
+  }
+}
+
+function triangle(size) {
+  var s = size ? size : 1;
+  var w = s * 2;
+  var h = Math.sqrt(Math.pow(w, 2) - Math.pow(s, 2));
+  var c = h * 0.5;
+  var coords = [];
+  var normals = [];
+  var indices = [
+    0,1,2,
+    3,4,5,
+    6,7,8,6,8,9,
+    10,11,12,10,12,13,
+    14,15,16,14,16,17
+  ];
+  
+  face([s,-c,s, 0,h-c,s, -s,-c,s], [0,0,1], coords, normals);
+  face([s,-c,-s, 0,h-c,-s, -s,-c,-s], [0,0,-1], coords, normals);
+  face([s,-c,s, s,-c,-s, 0,h-c,-s, 0,h-c,s], [1,1,0], coords, normals);
+  face([-s,-c,s, -s,-c,-s, 0,h-c,-s, 0,h-c,s], [-1,1,0], coords, normals);
+  face([s,-c,s, s,-c,-s, -s,-c,-s, -s,-c,s], [0,1,0], coords, normals);
+
+  return {
+    vertexPositions: new Float32Array(coords),
+    vertexNormals: new Float32Array(normals),
+    vertexTextureCoords: new Float32Array([]),
+    indices: new Uint16Array(indices)
+  };
+}
+
+function pyramid(size) {
+  var s = size ? size : 1;
+  var w = s * 2;
+  var h = Math.sqrt(Math.pow(w, 2) - Math.pow(s, 2));
+  var c = h * 0.5;
+  var coords = [];
+  var normals = [];
+  var indices = [
+    0,1,2,
+    3,4,5,
+    6,7,8,
+    9,10,11,
+    12,13,14,12,14,15
+  ];
+
+  face([s,-c,s, 0,h-c,0, -s,-c,s], [0,1,1], coords, normals);
+  face([s,-c,-s, 0,h-c,0, -s,-c,-s], [0,1,-1], coords, normals);
+  face([s,-c,s, 0,h-c,0, s,-c,-s,], [1,1,0], coords, normals);
+  face([-s,-c,s, 0,h-c,0, -s,-c,-s], [-1,1,0], coords, normals);
+  face([s,-c,s, s,-c,-s, -s,-c,-s, -s,-c,s], [0,1,0], coords, normals);
+
+  return {
+    vertexPositions: new Float32Array(coords),
+    vertexNormals: new Float32Array(normals),
+    vertexTextureCoords: new Float32Array([]),
+    indices: new Uint16Array(indices)
+  };
+}
+
+function hexagon(size) {
+
+  return {
+    vertexPositions: new Float32Array(coords),
     vertexNormals: new Float32Array(normals),
     vertexTextureCoords: new Float32Array([]),
     indices: new Uint16Array(indices)
@@ -564,31 +655,23 @@ Trial and error works on the numbers. Graph paper design is more efficient.
 
 function frame() {
   frameNumber += 1;
-  // Positions of the soccer ball       
-  xval += 0.01;
-  yval -= 0.01;
-  // Rotation of kick leg
-  // Not perfect by anymeans but Okay for at least one viewing angle.
-  kval -=.1;
-  if (xval > 8.5 || yval < -8.5) {
-     xval= -0.7;
-     yval= -2.1;
-     kval = 90;
-  }  
-  if (kval < 45) {
-    kval = 45; // Don't overextend the soccer all
-  }
+  // // Positions of the soccer ball       
+  // xval += 0.01;
+  // yval -= 0.01;
+  // // Rotation of kick leg
+  // // Not perfect by anymeans but Okay for at least one viewing angle.
+  // kval -=.1;
+  // if (xval > 8.5 || yval < -8.5) {
+  //    xval= -0.7;
+  //    yval= -2.1;
+  //    kval = 90;
+  // }  
+  // if (kval < 45) {
+  //   kval = 45; // Don't overextend the soccer all
+  // }
   draw();
   requestAnimationFrame(frame);
 }
-
-// function setAnimating(run) {
-//     if (run != animating) {
-//         animating = run;
-//         if (animating)
-//             requestAnimationFrame(frame);
-//     }
-// }
 
 //-------------------------------------------------------------------------
 
@@ -640,8 +723,8 @@ function init() {
     teapotModel.vertexPositions[i] *= 0.06; 
   }
   teapot = createModel(teapotModel);
-  //pyramid = createModel(uvPyramid());
-  //triangle = createModel(triangle());
+  triangle = createModel(triangle(0.5));
+  pyramid = createModel(pyramid(0.7));
   //diamond = createModel(uvDiamond());
 
   // This controls the zoom and initial placement
@@ -708,9 +791,9 @@ function init() {
         </td>
       </tr>
       <tr>
-        <td>Diamond</td>
+        <td>Hexagon</td>
         <td>
-          <input type="range" min="0" max="100" value="50" class="slider" id="diamond" />
+          <input type="range" min="0" max="100" value="50" class="slider" id="hexagon" />
         </td>
       </tr>
       <tr>
