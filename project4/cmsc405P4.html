@@ -199,16 +199,29 @@ var animate = {
   cube: {y: 2.5, inc: true, rate: 50, factor: 0.0005, max: 3, min: -3},
   sphere: {rad: 0, inc: true, rate: 50, factor: 0.0005, max: Math.PI*2, min: 0},
   ring: {rad: 0, inc: true, rate: 50, factor: 0.0009, max: Math.PI*2, min:0},
-  cone: {},
+  torus: {rad: 0, inc: true, rate: 50, factor: 0.0009, max: Math.PI*2, min:0},
+  triangle: {rad: 0, inc: true, rate: 50, factor: 0.0006, max: Math.PI*2, min: 0},
+  teapot: {rad: 0, inc: true, rate: 50, factor: 0.0006, max: Math.PI, min: 0},
+  cone: {
+    y: {val: -2, inc: true, rate: 50, factor: 0.0005, max: -2, min: -3},
+    z: {val: 1, inc: false, rate: 50, factor: 0.0005, max: 3, min: 1}
+  },
+  pyramid: {
+    x: {val: 1, inc: true, rate: 50, factor: 0.0004, max: 2, min: 0.5},
+    y: {val: 1, inc: true, rate: 50, factor: 0.0004, max: 2, min: 0.5},
+    z: {val: 1, inc: true, rate: 50, factor: 0.0004, max: 2, min: 0.5}
+  },
   cylinder: {
     trans: {x: -2, inc: false, rate: 50, factor: 0.0005, max: -1, min: -3},
     scale: {y: 2, inc: true, rate: 50, factor: 0.0005, max: 3, min: 1},
   },
-  triangle: {},
-  cross: {},
-  teapot: {},
-  pyramid: {},
-  torus: {rad: 0, inc: true, rate: 50, factor: 0.0009, max: Math.PI*2, min:0}
+  cross: {
+    rot: {rad: 0, inc: true, rate: 50, factor: 0.0005, max: Math.PI*2, min: 0},
+    scale: {
+      x: {val: 0.8, inc: true, rate: 50, factor: 0.0004, max: 1.4, min: 0.4},
+      y: {val: 0.8, inc: true, rate: 50, factor: 0.0004, max: 1.4, min: 0.4}
+    }
+  }
 };
 
 // objects rendered by createModel
@@ -339,7 +352,7 @@ function scene() {
 
   // cone 
   pushMatrix();
-  mat4.translate(modelview, modelview, [0,-2,1]);
+  mat4.translate(modelview, modelview, [0, animate.cone.y.val, animate.cone.z.val]);
   mat4.rotate(modelview, modelview, -Math.PI*0.5, [1,0,0]);
   currentColor = [0.9,0.4,0.1,1];
   cone.render();
@@ -347,6 +360,7 @@ function scene() {
 
   // teapot
   pushMatrix();
+  mat4.rotate(modelview, modelview, animate.teapot.rad, [0,1,0]);
   mat4.translate(modelview, modelview, [2.8,-2,0]);
   currentColor = [0.9,0.4,0.1,1];
   teapot.render();
@@ -354,7 +368,8 @@ function scene() {
 
   // triangle
   pushMatrix();
-  mat4.translate(modelview, modelview, [-2,2,0]);
+  mat4.translate(modelview, modelview, [-4,2,3]);
+  mat4.rotate(modelview, modelview, -animate.triangle.rad, [0,1,1]);
   currentColor = [0.9,0.4,0.1,1];
   gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
   triangle.render();
@@ -363,7 +378,8 @@ function scene() {
 
   // pyramid
   pushMatrix();
-  mat4.translate(modelview, modelview, [2,0,0]);
+  mat4.translate(modelview, modelview, [3,0,1]);
+  mat4.scale(modelview, modelview, [animate.pyramid.x.val, animate.pyramid.y.val, animate.pyramid.z.val]);
   currentColor = [0.9,0.4,0.1,1];
   gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
   pyramid.render();
@@ -373,6 +389,8 @@ function scene() {
   // cross
   pushMatrix();
   mat4.translate(modelview, modelview, [3,2,-2]);
+  mat4.scale(modelview, modelview, [animate.cross.scale.x.val, animate.cross.scale.y.val, 1]);
+  mat4.rotate(modelview, modelview, -animate.cross.rot.rad, [0,0,1]);
   currentColor = [0.9,0.4,0.1,1];
   gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
   cross.render();
@@ -717,9 +735,7 @@ function initGL() {
 //--------------------------------- animation framework ------------------------------
 
 /*
-This is where you control the animation by changing positions,
-and rotations values as needed.
-Trial and error works on the numbers. Graph paper design is more efficient. 
+This is where to control the animation by changing positions, and rotations values as needed.
 */
 
 function frame() {
@@ -783,7 +799,129 @@ function frame() {
     }
   }
 
+  if(animate.cone.y.inc) {
+    if(animate.cone.y.val <= animate.cone.y.max) {
+      animate.cone.y.val += animate.cone.y.rate * animate.cone.y.factor;
+    }else {
+      animate.cone.y.inc = false;
+    }
+  }else {
+    if(animate.cone.y.val >= animate.cone.y.min) {
+      animate.cone.y.val -= animate.cone.y.rate * animate.cone.y.factor;
+    }else {
+      animate.cone.y.inc = true;
+    }
+  }
 
+  if(animate.cone.z.inc) {
+    if(animate.cone.z.val <= animate.cone.z.max) {
+      animate.cone.z.val += animate.cone.z.rate * animate.cone.z.factor;
+    }else {
+      animate.cone.z.inc = false;
+    }
+  }else {
+    if(animate.cone.z.val >= animate.cone.z.min) {
+      animate.cone.z.val -= animate.cone.z.rate * animate.cone.z.factor;
+    }else {
+      animate.cone.z.inc = true;
+    }
+  }
+
+  if(animate.triangle.rad <= animate.triangle.max) {
+    animate.triangle.rad += animate.triangle.rate * animate.triangle.factor;
+  }else {
+    animate.triangle.rad = animate.triangle.min;
+  }
+
+  if(animate.pyramid.x.inc) {
+    if(animate.pyramid.x.val <= animate.pyramid.x.max) {
+      animate.pyramid.x.val += animate.pyramid.x.rate * animate.pyramid.x.factor;
+    }else {
+      animate.pyramid.x.inc = false;
+    }
+  }else {
+    if(animate.pyramid.x.val >= animate.pyramid.x.min) {
+      animate.pyramid.x.val -= animate.pyramid.x.rate * animate.pyramid.x.factor;
+    }else {
+      animate.pyramid.x.inc = true;
+    }
+  }
+
+  if(animate.pyramid.y.inc) {
+    if(animate.pyramid.y.val <= animate.pyramid.y.max) {
+      animate.pyramid.y.val += animate.pyramid.y.rate * animate.pyramid.y.factor;
+    }else {
+      animate.pyramid.y.inc = false;
+    }
+  }else {
+    if(animate.pyramid.y.val >= animate.pyramid.y.min) {
+      animate.pyramid.y.val -= animate.pyramid.y.rate * animate.pyramid.y.factor;
+    }else {
+      animate.pyramid.y.inc = true;
+    }
+  }
+
+  if(animate.pyramid.z.inc) {
+    if(animate.pyramid.z.val <= animate.pyramid.z.max) {
+      animate.pyramid.z.val += animate.pyramid.z.rate * animate.pyramid.z.factor;
+    }else {
+      animate.pyramid.z.inc = false;
+    }
+  }else {
+    if(animate.pyramid.z.val >= animate.pyramid.z.min) {
+      animate.pyramid.z.val -= animate.pyramid.z.rate * animate.pyramid.z.factor;
+    }else {
+      animate.pyramid.z.inc = true;
+    }
+  }
+
+  if(animate.teapot.inc) {
+    if(animate.teapot.rad <= animate.teapot.max) {
+      animate.teapot.rad += animate.teapot.rate * animate.teapot.factor;
+    }else {
+      animate.teapot.inc = false;
+    }
+  }else {
+    if(animate.teapot.rad >= animate.teapot.min) {
+      animate.teapot.rad -= animate.teapot.rate * animate.teapot.factor;
+    }else {
+      animate.teapot.inc = true;
+    }
+  }
+
+  if(animate.cross.rot.rad <= animate.cross.rot.max) {
+    animate.cross.rot.rad += animate.cross.rot.rate * animate.cross.rot.factor;
+  }else {
+    animate.cross.rot.rad = animate.cross.rot.min;
+  }
+
+  if(animate.cross.scale.x.inc) {
+    if(animate.cross.scale.x.val <= animate.cross.scale.x.max) {
+      animate.cross.scale.x.val += animate.cross.scale.x.rate * animate.cross.scale.x.factor;
+    }else {
+      animate.cross.scale.x.inc = false;
+    }
+  }else {
+    if(animate.cross.scale.x.val >= animate.cross.scale.x.min) {
+      animate.cross.scale.x.val -= animate.cross.scale.x.rate * animate.cross.scale.x.factor;
+    }else {
+      animate.cross.scale.x.inc = true;
+    }
+  }
+
+  if(animate.cross.scale.y.inc) {
+    if(animate.cross.scale.y.val <= animate.cross.scale.y.max) {
+      animate.cross.scale.y.val += animate.cross.scale.y.rate * animate.cross.scale.y.factor;
+    }else {
+      animate.cross.scale.y.inc = false;
+    }
+  }else {
+    if(animate.cross.scale.y.val >= animate.cross.scale.y.min) {
+      animate.cross.scale.y.val -= animate.cross.scale.y.rate * animate.cross.scale.y.factor;
+    }else {
+      animate.cross.scale.y.inc = true;
+    }
+  }
 
   draw();
   requestAnimationFrame(frame);
@@ -810,7 +948,7 @@ function init() {
   }
 
   try {
-    initGL();  // initialize the WebGL graphics context
+    initGL(); // initialize the WebGL graphics context
   }catch (e) {
     document.getElementById("container").style.display = "none";
     document.getElementById("message").innerHTML =
@@ -825,18 +963,19 @@ function init() {
   for(var i = 0; i < sliders.length; i++) {
     sliders[i].oninput = function() {
       var shape = animate[this.id];
-      if(shape.trans) {
-        shape.trans.rate = this.value;
-      } 
-      if(shape.rot) {
-        shape.rot.rate = this.value;
-      } 
-      if(shape.scale) {
-        shape.scale.rate = this.value;
-      }
-      if(shape.rate) {
-        shape.rate = this.value;
-      }
+      var value = this.value;
+      // assuming that data structure does not have any arrays
+      (function search(obj, target) {
+        for(var prop in obj) {
+          if(prop === target) {
+            obj[prop] = value;
+          }
+
+          if(typeof obj[prop] == "object") {
+            search(obj[prop], target);
+          }
+        }
+      })(shape, 'rate');
       console.log("Id: " + this.id + ", Value: " + this.value);
     }
   }
@@ -849,21 +988,22 @@ function init() {
 
   resetAnimation.onclick = function() {
     for(var i = 0; i < sliders.length; i++) {
+      sliders[i].value = 50;
       var id = sliders[i].id;
       var shape = animate[id];
-      if(shape.trans) {
-        shape.trans.rate = 50;
-      } 
-      if(shape.rot) {
-        shape.rot.rate = 50;
-      } 
-      if(shape.scale) {
-        shape.scale.rate = 50;
-      }
-      if(shape.rate) {
-        shape.rate = 50;
-      }
-      sliders[i].value = 50;
+      
+      // assuming that data structure does not have any arrays
+      (function search(obj, target) {
+        for(var prop in obj) {
+          if(prop === target) {
+            obj[prop] = 50;
+          }
+
+          if(typeof obj[prop] == "object") {
+            search(obj[prop], target);
+          }
+        }
+      })(shape, 'rate');
     }
     console.log("resetting animation speed");
   };
@@ -882,7 +1022,7 @@ function init() {
   }
   teapot = createModel(teapotModel);
   triangle = createModel(triangle(0.5));
-  pyramid = createModel(pyramid(0.7));
+  pyramid = createModel(pyramid(0.3));
   cross = createModel(cross(0.3));
 
   // This controls the zoom and initial placement
