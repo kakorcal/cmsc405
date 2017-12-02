@@ -195,18 +195,20 @@ var normalMatrix = mat3.create();  // matrix, derived from modelview matrix, for
 
 var rotator;  // A TrackballRotator to implement rotation by mouse.
 
-var frameNumber = 0;  // frame number during animation (actually only goes up by 0.5 per frame)
 var animate = {
   cube: {y: 2.5, inc: true, rate: 50, factor: 0.0005, max: 3, min: -3},
-  sphere: {},
+  sphere: {rad: 0, inc: true, rate: 50, factor: 0.0005, max: Math.PI*2, min: 0},
+  ring: {rad: 0, inc: true, rate: 50, factor: 0.0009, max: Math.PI*2, min:0},
   cone: {},
-  cylinder: {},
+  cylinder: {
+    trans: {x: -2, inc: false, rate: 50, factor: 0.0005, max: -1, min: -3},
+    scale: {y: 2, inc: true, rate: 50, factor: 0.0005, max: 3, min: 1},
+  },
   triangle: {},
   cross: {},
   teapot: {},
   pyramid: {},
-  ring: {},
-  torus: {}
+  torus: {rad: 0, inc: true, rate: 50, factor: 0.0009, max: Math.PI*2, min:0}
 };
 
 // objects rendered by createModel
@@ -301,8 +303,8 @@ function scene() {
 
   // cylinder
   pushMatrix();
-  mat4.translate(modelview, modelview, [-2,0,3]);
-  mat4.rotate(modelview, modelview, Math.PI*0.5, [0,1,0]);
+  mat4.translate(modelview, modelview, [animate.cylinder.trans.x, -2, 3]);
+  mat4.scale(modelview, modelview, [1, animate.cylinder.scale.y, 1]);
   currentColor = [0.9,0.4,0.1,1];
   cylinder.render();
   popMatrix();
@@ -310,6 +312,7 @@ function scene() {
   // torus 
   pushMatrix();
   mat4.translate(modelview, modelview, [-2,0,0]);
+  mat4.rotate(modelview, modelview, animate.torus.rad, [1,0,0]);
   currentColor = [0.9,0.4,0.1,1];
   gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
   torus.render();
@@ -318,6 +321,7 @@ function scene() {
 
   // sphere
   pushMatrix();
+  mat4.rotate(modelview, modelview, animate.sphere.rad, [0,0,1]);
   mat4.translate(modelview, modelview, [1,2,-1]);
   currentColor = [0.9,0.4,0.1,1];
   gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
@@ -327,8 +331,9 @@ function scene() {
 
   // ring
   pushMatrix();
+  mat4.rotate(modelview, modelview, animate.sphere.rad, [0,0,1]);
   mat4.translate(modelview, modelview, [1,2,-1]);
-  mat4.rotate(modelview, modelview, Math.PI*0.5, [1,0,0]);
+  mat4.rotate(modelview, modelview, animate.ring.rad, [0,1,0]);
   ring.render();
   popMatrix();
 
@@ -731,7 +736,55 @@ function frame() {
       animate.cube.inc = true;
     }
   }
-  
+
+  if(animate.sphere.rad <= animate.sphere.max) {
+    animate.sphere.rad += animate.sphere.rate * animate.sphere.factor;
+  }else {
+    animate.sphere.rad = animate.sphere.min;
+  }
+
+  if(animate.ring.rad <= animate.ring.max) {
+    animate.ring.rad += animate.ring.rate * animate.ring.factor;
+  }else {
+    animate.ring.rad = animate.ring.min;
+  }
+
+  if(animate.torus.rad <= animate.torus.max) {
+    animate.torus.rad += animate.torus.rate * animate.torus.factor;
+  }else {
+    animate.torus.rad = animate.torus.min;
+  }
+
+  if(animate.cylinder.trans.inc) {
+    if(animate.cylinder.trans.x <= animate.cylinder.trans.max) {
+      animate.cylinder.trans.x += animate.cylinder.trans.rate * animate.cylinder.trans.factor;
+    }else {
+      animate.cylinder.trans.inc = false;
+    }
+  }else {
+    if(animate.cylinder.trans.x >= animate.cylinder.trans.min) {
+      animate.cylinder.trans.x -= animate.cylinder.trans.rate * animate.cylinder.trans.factor;
+    }else {
+      animate.cylinder.trans.inc = true;
+    }
+  }
+
+  if(animate.cylinder.scale.inc) {
+    if(animate.cylinder.scale.y <= animate.cylinder.scale.max) {
+      animate.cylinder.scale.y += animate.cylinder.scale.rate * animate.cylinder.scale.factor;
+    }else {
+      animate.cylinder.scale.inc = false;
+    }
+  }else {
+    if(animate.cylinder.scale.y >= animate.cylinder.scale.min) {
+      animate.cylinder.scale.y -= animate.cylinder.scale.rate * animate.cylinder.scale.factor;
+    }else {
+      animate.cylinder.scale.inc = true;
+    }
+  }
+
+
+
   draw();
   requestAnimationFrame(frame);
 }
@@ -771,13 +824,25 @@ function init() {
 
   for(var i = 0; i < sliders.length; i++) {
     sliders[i].oninput = function() {
-      animate[this.id].rate = this.value;
+      var shape = animate[this.id];
+      if(shape.trans) {
+        shape.trans.rate = this.value;
+      } 
+      if(shape.rot) {
+        shape.rot.rate = this.value;
+      } 
+      if(shape.scale) {
+        shape.scale.rate = this.value;
+      }
+      if(shape.rate) {
+        shape.rate = this.value;
+      }
       console.log("Id: " + this.id + ", Value: " + this.value);
     }
   }
 
   resetView.onclick = function() {
-    rotator.setView(15, [1,0.5,1]);
+    rotator.setView(18, [1,0.5,1]);
     frameNumber = 0;
     console.log("resetting view");
   };
@@ -785,8 +850,20 @@ function init() {
   resetAnimation.onclick = function() {
     for(var i = 0; i < sliders.length; i++) {
       var id = sliders[i].id;
+      var shape = animate[id];
+      if(shape.trans) {
+        shape.trans.rate = 50;
+      } 
+      if(shape.rot) {
+        shape.rot.rate = 50;
+      } 
+      if(shape.scale) {
+        shape.scale.rate = 50;
+      }
+      if(shape.rate) {
+        shape.rate = 50;
+      }
       sliders[i].value = 50;
-      animate[id].rate = 50;
     }
     console.log("resetting animation speed");
   };
@@ -809,7 +886,7 @@ function init() {
   cross = createModel(cross(0.3));
 
   // This controls the zoom and initial placement
-  rotator = new TrackballRotator(canvas, draw, 15, [1,0.5,1]); 
+  rotator = new TrackballRotator(canvas, draw, 18, [1,0.5,1]); 
   requestAnimationFrame(frame);
 }
 
@@ -839,6 +916,12 @@ function init() {
         <td>Sphere</td>
         <td>
           <input type="range" min="0" max="100" value="50" class="slider" id="sphere" />
+        </td>
+      </tr>
+      <tr>
+        <td>Ring</td>
+        <td>
+          <input type="range" min="0" max="100" value="50" class="slider" id="ring" />
         </td>
       </tr>
       <tr>
@@ -881,12 +964,6 @@ function init() {
         <td>Teapot</td>
         <td>
           <input type="range" min="0" max="100" value="50" class="slider" id="teapot" />
-        </td>
-      </tr>
-      <tr>
-        <td>Ring</td>
-        <td>
-          <input type="range" min="0" max="100" value="50" class="slider" id="ring" />
         </td>
       </tr>
       <tr>
