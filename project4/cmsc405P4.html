@@ -38,6 +38,16 @@
     table td {
       padding: 0 5px;
     }
+    button {
+      width: 48%;
+      background: #4CAF50;
+      color: #fff;
+      opacity: 0.7;
+    }
+    button:hover {
+      opacity: 1;
+      cursor: pointer;
+    }
     /* https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_rangeslider_round */
     .slider {
       -webkit-appearance: none;
@@ -186,6 +196,18 @@ var normalMatrix = mat3.create();  // matrix, derived from modelview matrix, for
 var rotator;  // A TrackballRotator to implement rotation by mouse.
 
 var frameNumber = 0;  // frame number during animation (actually only goes up by 0.5 per frame)
+var animate = {
+  cube: {y: 2.5, inc: true, rate: 50, factor: 0.0005, max: 3, min: -3},
+  sphere: {},
+  cone: {},
+  cylinder: {},
+  triangle: {},
+  cross: {},
+  teapot: {},
+  pyramid: {},
+  ring: {},
+  torus: {}
+};
 
 // objects rendered by createModel
 var xAxis, yAxis, zAxis;
@@ -240,23 +262,7 @@ function lights() {
      gl.uniform1i( u_lights[2].enabled, 1 );  
     // Looking down Y
     gl.uniform4f( u_lights[2].position, 0,1,0,0 ); 
-    gl.uniform3f( u_lights[2].color, 1.0,0.0,1.0 );  
-    
-    
-   //  currentColor = [ 0.3, 0.3, 0.3, 1 ];
-    
-   //  pushMatrix();  
-   //  mat4.translate(modelview,modelview,[xval,yval,1]);// 
-   //  mat4.scale(modelview,modelview,[0.4,0.4,0.4]);
-    
-   // gl.uniform3f( u_material.emissiveColor, 0.7, 0.7, 0 );
-   //   // SHow the soccer ball
-   //  sphere.render();
-   //  // Modifying this material will change the Boxman look
-   //  gl.uniform3f( u_material.emissiveColor, 0, 0, 0 );
-   //  popMatrix();  
-  
-   
+    gl.uniform3f( u_lights[2].color, 1.0,0.0,1.0 );   
 }
 
 function axes() {
@@ -274,8 +280,8 @@ function axes() {
   popMatrix();
 
   pushMatrix();
-  currentColor = [0,0,1,1];
-  gl.uniform3fv(u_material.emissiveColor, [0,0,1]);
+  currentColor = [0,1,1,1];
+  gl.uniform3fv(u_material.emissiveColor, [0,1,1]);
   zAxis.render(gl.LINES);
   popMatrix();
   gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
@@ -288,7 +294,7 @@ function axes() {
 function scene() {
   // cube
   pushMatrix();
-  mat4.translate(modelview, modelview, [-5,2,0]);
+  mat4.translate(modelview, modelview, [-4, animate.cube.y, 0]);
   currentColor = [0.9,0.4,0.1,1];
   cube.render();
   popMatrix();
@@ -363,9 +369,9 @@ function scene() {
   pushMatrix();
   mat4.translate(modelview, modelview, [3,2,-2]);
   currentColor = [0.9,0.4,0.1,1];
-  // gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
+  gl.uniform3fv(u_material.emissiveColor, [0.9,0.4,0.1]);
   cross.render();
-  // gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
+  gl.uniform3fv(u_material.emissiveColor, [0,0,0]);
   popMatrix();    
 }
 
@@ -703,8 +709,6 @@ function initGL() {
   // Lights are set on in the draw() method  
 } // end initGL()
 
-
-
 //--------------------------------- animation framework ------------------------------
 
 /*
@@ -714,21 +718,20 @@ Trial and error works on the numbers. Graph paper design is more efficient.
 */
 
 function frame() {
-  frameNumber += 1;
-  // // Positions of the soccer ball       
-  // xval += 0.01;
-  // yval -= 0.01;
-  // // Rotation of kick leg
-  // // Not perfect by anymeans but Okay for at least one viewing angle.
-  // kval -=.1;
-  // if (xval > 8.5 || yval < -8.5) {
-  //    xval= -0.7;
-  //    yval= -2.1;
-  //    kval = 90;
-  // }  
-  // if (kval < 45) {
-  //   kval = 45; // Don't overextend the soccer all
-  // }
+  if(animate.cube.inc) {
+    if(animate.cube.y <= animate.cube.max) {
+      animate.cube.y += animate.cube.rate * animate.cube.factor;
+    }else {
+      animate.cube.inc = false;
+    }
+  }else {
+    if(animate.cube.y >= animate.cube.min) {
+      animate.cube.y -= animate.cube.rate * animate.cube.factor;
+    }else {
+      animate.cube.inc = true;
+    }
+  }
+  
   draw();
   requestAnimationFrame(frame);
 }
@@ -763,12 +766,30 @@ function init() {
   }
 
   var sliders = document.querySelectorAll("input[type=range]");
+  var resetView = document.getElementById('resetView');
+  var resetAnimation = document.getElementById('resetAnimation');
 
   for(var i = 0; i < sliders.length; i++) {
     sliders[i].oninput = function() {
+      animate[this.id].rate = this.value;
       console.log("Id: " + this.id + ", Value: " + this.value);
     }
   }
+
+  resetView.onclick = function() {
+    rotator.setView(15, [1,0.5,1]);
+    frameNumber = 0;
+    console.log("resetting view");
+  };
+
+  resetAnimation.onclick = function() {
+    for(var i = 0; i < sliders.length; i++) {
+      var id = sliders[i].id;
+      sliders[i].value = 50;
+      animate[id].rate = 50;
+    }
+    console.log("resetting animation speed");
+  };
 
   xAxis = createModel(line([-1,0,0, 2,0,0], [0,0,-1, 0,0,2], [0,1]));
   yAxis = createModel(line([0,-1,0, 0,2,0], [-1,0,0, 2,0,0], [0,1]));
@@ -789,7 +810,7 @@ function init() {
 
   // This controls the zoom and initial placement
   rotator = new TrackballRotator(canvas, draw, 15, [1,0.5,1]); 
-  draw();
+  requestAnimationFrame(frame);
 }
 
 </script>
@@ -867,6 +888,13 @@ function init() {
         <td>
           <input type="range" min="0" max="100" value="50" class="slider" id="ring" />
         </td>
+      </tr>
+      <tr>
+        <th>Reset</th>
+        <th>
+          <button id="resetView">VIEW</button>
+          <button id="resetAnimation">ANIMATION</button>
+        </th>
       </tr>
     </table>
   </div>
