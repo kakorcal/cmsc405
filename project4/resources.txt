@@ -4,10 +4,3 @@ http://learningwebgl.com/blog/?p=28
 https://webglfundamentals.org/webgl/lessons/webgl-fundamentals.html
 https://www.codeproject.com/Articles/594222/LineplusinplusWebGLplusandpluswhyplusyouplusgonnap
 https://webglfundamentals.org/webgl/lessons/webgl-3d-perspective.html
-
-// todo
-1. colors
-2. lights
-3. material / texture
-4. refactor
-5. document

@@ -8,7 +8,7 @@
 <title>Project 4</title>
 <link rel="stylesheet" href="./styles.css">
 
-<!-- This shader is exactly as provided -->
+<!-- The shaders are exactly as provided -->
 <script type="x-shader/x-vertex" id="vshader-source">
   attribute vec3 a_coords;
   attribute vec3 a_normal;   
@@ -24,8 +24,6 @@
     v_eyeCoords = eyeCoords.xyz/eyeCoords.w;         
   }
 </script>
-
-<!-- This shader has simplified lighting model and equation. Notice the light only has 3 properties now -->
 <script type="x-shader/x-fragment" id="fshader-source">
   #ifdef GL_FRAGMENT_PRECISION_HIGH
      precision highp float;
@@ -169,24 +167,18 @@ function draw() {
   scene();
 }
 
-function lights() {   
-     
-    // Three of four lights used, all enabled
-    // Use lights to enhance models looks
-    gl.uniform1i(u_lights[0].enabled, 1);   
-    // Looking down z
-    gl.uniform4f(u_lights[0].position, 0,0,1,0); 
-    gl.uniform3fv(u_lights[0].color, colors.white);  
-    
-    gl.uniform1i(u_lights[1].enabled, 1);  
-    // Looking down X
-    gl.uniform4f(u_lights[1].position, 1,0,0,0); 
-    gl.uniform3fv(u_lights[1].color, colors.green);  
-    
-    gl.uniform1i(u_lights[2].enabled, 1);  
-    // Looking down Y
-    gl.uniform4f(u_lights[2].position, 0,1,0,0); 
-    gl.uniform3fv(u_lights[2].color, colors.magenta);   
+function lights() {      
+  gl.uniform1i(u_lights[0].enabled, 1);   
+  gl.uniform4f(u_lights[0].position, 0,0,1,0); 
+  gl.uniform3fv(u_lights[0].color, colors.white);  
+  
+  gl.uniform1i(u_lights[1].enabled, 1);  
+  gl.uniform4f(u_lights[1].position, 1,0,0,0); 
+  gl.uniform3fv(u_lights[1].color, colors.green);  
+  
+  gl.uniform1i(u_lights[2].enabled, 1);  
+  gl.uniform4f(u_lights[2].position, 0,1,0,0); 
+  gl.uniform3fv(u_lights[2].color, colors.magenta);   
 }
 
 function axes() {
@@ -322,21 +314,8 @@ function popMatrix() {
   modelview = matrixStack.pop();
 }
 
-/**
- *  Create one of the basic objects.  The modelData holds the data for
- *  an IFS using the structure from basic-objects-IFS.js.  This function
- *  creates VBOs to hold the coordinates, normal vectors, and indices
- *  from the IFS, and it loads the data into those buffers.  The function
- *  creates a new object whose properties are the identifies of the
- *  VBOs.  The new object also has a function, render(), that can be called to
- *  render the object, using all the data from the buffers.  That object
- *  is returned as the value of the function.  (The second parameter,
- *  xtraTranslate, is there because this program was ported from a Java
- *  version where cylinders were created in a different position, with
- *  the base on the xy-plane instead of with their center at the origin.
- *  The xtraTranslate parameter is a 3-vector that is applied as a
- *  translation to the rendered object.  It is used to move the cylinders
- *  into the position expected by the code that was ported from Java.)
+/*
+createModel, createProgram and initGL are exactly as provided
  */
 function createModel(modelData, xtraTranslate) {
   var model = {};
@@ -384,16 +363,6 @@ function createModel(modelData, xtraTranslate) {
   return model;
 }
 
-
-/* Creates a program for use in the WebGL context gl, and returns the
- * identifier for that program.  If an error occurs while compiling or
- * linking the program, an exception of type String is thrown.  The error
- * string contains the compilation or linking error.  If no error occurs,
- * the program identifier is the return value of the function.
- *    The second and third parameters are the id attributes for <script>
- * elementst that contain the source code for the vertex and fragment
- * shaders.
- */
 function createProgram(gl, vertexShaderID, fragmentShaderID) {
     function getTextContent(elementID) {
       // This nested function retrieves the text content of an
@@ -484,7 +453,6 @@ function initGL() {
     gl.uniform3fv(u_lights[i].color, colors.white); 
   }
     
-  // Lights are set on in the draw() method  
 } // end initGL()
 
 //--------------------------------- animation framework ------------------------------
